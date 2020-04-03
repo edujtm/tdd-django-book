@@ -34,13 +34,14 @@ class NewVisitorTest(unittest.TestCase):
 
     # Ainda continua havendo uma caixa de texto convidando-a a acrescentar outro
     # item. Ela insere "Usar penas de pavão para fazer uma isca" 
-    inputbox.send_keys(Key.ENTER)
+    inputbox.send_keys(Keys.ENTER)
     time.sleep(1)
 
     table = self.browser.find_element_by_id('id_list_table')
     rows = table.find_element_by_tag_name('tr')
     self.assertTrue(
-      any(row.text == '1 : Buy peacock feathers' for row in rows)
+      any(row.text == '1 : Buy peacock feathers' for row in rows),
+      "New to-do item did not appear in table"
     )
 
     # A página é atualizada novamente e agora mostra os dois itens em sua lista
