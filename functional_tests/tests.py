@@ -86,7 +86,7 @@ class NewVisitorTest(LiveServerTestCase):
 
     # Francis acessa a página inicial, não há nenhum sinal da lista de Edith
     self.browser.get(self.live_server_url)
-    page_text = self.browser.get_element_by_tag_name('body').text
+    page_text = self.browser.find_element_by_tag_name('body').text
     self.assertNotIn('Buy peacock feathers', page_text)
     self.assertNotIn('make a fly', page_text)
 
@@ -103,7 +103,7 @@ class NewVisitorTest(LiveServerTestCase):
     self.assertNotEqual(francis_list_url, edith_list_url, "Different users have the same list url")
 
     # Novamente não há nenhum sinal da lista de Edith
-    page_text = self.browser.get_element_by_tag_name('body').text
+    page_text = self.browser.find_element_by_tag_name('body').text
     self.assertNotIn('Buy peacock feathers', page_text)
     self.assertNotIn('make a fly', page_text)
 
