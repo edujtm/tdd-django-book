@@ -1,5 +1,4 @@
 from django.shortcuts import redirect, render
-from django.http import HttpResponse
 
 from lists.models import Item, List
 
@@ -11,9 +10,15 @@ def home_page(request):
 def new_list(request):
     list_ = List.objects.create()
     Item.objects.create(text=request.POST['item_text'], list=list_)
-    return redirect('/lists/the-only-list-in-the-world/')
+    return redirect(f'/lists/{list_.id}/')
 
 
-def view_list(request):
-    items = Item.objects.all()
-    return render(request, 'list.html', {'items': items})
+def add_item(request, pk):
+    list_ = List.objects.get(id=pk)
+    Item.objects.create(text=request.POST['item_text'], list=list_)
+    return redirect(f'/lists/{list_.id}/')
+
+
+def view_list(request, pk):
+    list_ = List.objects.get(id=pk)
+    return render(request, 'list.html', {'list': list_})
