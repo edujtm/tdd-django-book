@@ -21,12 +21,9 @@ def new_list(request):
     return redirect(f'/lists/{list_.id}/')
 
 
-def add_item(request, pk):
-    list_ = List.objects.get(id=pk)
-    Item.objects.create(text=request.POST['item_text'], list=list_)
-    return redirect(f'/lists/{list_.id}/')
-
-
 def view_list(request, pk):
     list_ = List.objects.get(id=pk)
+    if request.method == 'POST':
+        Item.objects.create(text=request.POST['item_text'], list=list_)
+        return redirect(f'/lists/{list_.id}/')
     return render(request, 'list.html', {'list': list_})
