@@ -5,6 +5,10 @@ MAX_WAIT = 10
 
 
 class ItemValidationTest(FunctionalTest):
+
+    def get_error_element(self):
+        return self.browser.find_element_by_css_selector('.has-error')
+
     def test_cannot_add_empty_list_items(self):
         # Edith acessa a página inicial e acidentalmente tenta submeter
         # um item vazio na lista. Ela tecla enter na caixa de entrada vazia.
@@ -62,6 +66,30 @@ class ItemValidationTest(FunctionalTest):
 
         # Ela vê uma mensagem de erro prestativa
         self.wait_for(lambda: self.assertEqual(
-            self.browser.find_element_by_css_selector('.has-error').text,
+            self.get_error_element().text,
             "You've already got this in your list"
+        ))
+
+    def test_error_messages_are_cleared_on_input(self):
+        # Edith inicia uma lista e provoca um erro de validação
+        self.browser.get(self.live_server_url)
+        inputbox = self.get_item_input_box()
+        inputbox.send_keys('Banter too thick')
+        inputbox.send_keys(Keys.ENTER)
+
+        self.wait_for_row_in_list_table('1: Banter too thick')
+        inputbox = self.get_item_input_box()
+        inputbox.send_keys('Banter too thick')
+        inputbox.send_keys(Keys.ENTER)
+
+        self.wait_for(lambda: self.assertTrue(
+            self.get_error_element().is_displayed()
+        ))
+
+        # Ela começa a digitar na caixa de entrada para limpar o erro
+        self.get_item_input_box().send_keys('a')
+
+        # Ela fica satisfeita ao ver que a mensagem de erro desaparece
+        self.wait_for(lambda: self.assertFalse(
+            self.get_error_element() .is_displayed()
         ))
