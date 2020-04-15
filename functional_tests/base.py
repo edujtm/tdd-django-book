@@ -30,6 +30,7 @@ class FunctionalTest(StaticLiveServerTestCase):
     def tearDown(self):
         self.browser.quit()
 
+    @wait
     def wait_for(self, fn):
         return fn()
 
