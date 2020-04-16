@@ -47,7 +47,7 @@ class LoginTest(FunctionalTest):
         # de navegação. Essa seção está lhe dizendo para inserir o seu endereço
         # de email, portanto ela faz isso.
         if self.staging_server:
-            test_email = 'edith.testuser@yahoo.com'
+            test_email = 'edujtm.soft@gmail.com'
         else:
             test_email = 'edith@example.com'
 
