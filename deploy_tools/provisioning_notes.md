@@ -26,6 +26,7 @@ Por exemplo, no Ubuntu:
 
 * veja gunicorn-systemd.template.service
 * substitua SITENAME, por exemplo, por staging.my-domain.com
+* substitua SEKRIT pela senha de email
 
 ## Estruturas de pastas:
 

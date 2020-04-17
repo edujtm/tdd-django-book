@@ -145,3 +145,7 @@ class NewListTest(TestCase):
         self.client.post('/lists/new', data={'text': ''})
         self.assertEqual(List.objects.count(), 0, "New list was created when blank input was typed")
         self.assertEqual(Item.objects.count(), 0, "Item with blank input was saved into database")
+
+    def test_my_lists_url_renders_my_lists_template(self):
+        response = self.client.get('/lists/users/a@b.com/')
+        self.assertTemplateUsed(response, 'my_list.html')
