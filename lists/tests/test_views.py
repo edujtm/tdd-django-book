@@ -1,10 +1,14 @@
-from unittest import skip
+import unittest
+from unittest.mock import patch, Mock, MagicMock
+from django.http import HttpRequest
+from django.urls import reverse
 from django.test import TestCase
 from django.utils.html import escape
 from django.contrib.auth import get_user_model
 
-from lists.models import Item, List
+from lists.views import new_list
 from lists.forms import ItemForm, ExistingListItemForm,EMPTY_ITEM_ERROR, DUPLICATE_ITEM_ERROR
+from lists.models import Item, List
 
 User = get_user_model()
 
@@ -149,6 +153,73 @@ class NewListTest(TestCase):
         self.assertEqual(List.objects.count(), 0, "New list was created when blank input was typed")
         self.assertEqual(Item.objects.count(), 0, "Item with blank input was saved into database")
 
+    def test_list_owner_is_saved_if_user_is_authenticated(self):
+        user = User.objects.create(email='a@b.com')
+        self.client.force_login(user)
+        self.client.post('/lists/new', data={'text': 'new item'})
+        list_ = List.objects.first()
+        self.assertEqual(list_.owner, user)
+
+
+# redirect was complaining about mocks
+def mocked_new_list_form():
+    mock = MagicMock()
+    mock_form = mock.return_value
+    mock_list = mock_form.save.return_value     # Saving should return a list
+    mock_list.get_absolute_url = lambda: reverse('view_list', args=[1])
+    return mock
+
+
+@patch('lists.views.NewListForm', new_callable=mocked_new_list_form)
+class NewListViewFormTest(unittest.TestCase):
+
+    def setUp(self) -> None:
+        self.request = HttpRequest()
+        self.request.POST['text'] = 'new list item'
+        self.request.user = Mock()
+
+    def test_passes_POST_data_to_NewListForm(self, mock_new_list_form):
+        new_list(self.request)
+        mock_new_list_form.assert_called_once_with(data=self.request.POST)
+
+    def test_saves_form_with_owner_if_form_valid(self, mock_new_list_form):
+        mock_form = mock_new_list_form.return_value
+        mock_form.is_valid.return_value = True
+
+        new_list(self.request)
+
+        mock_form.save.assert_called_once_with(owner=self.request.user)
+
+    @patch('lists.views.redirect')
+    def test_redirects_to_form_returned_object_if_form_valid(self, mock_redirect, mock_new_list_form):
+        mock_form = mock_new_list_form.return_value
+        mock_form.is_valid.return_value = True
+
+        response = new_list(self.request)
+
+        self.assertEqual(response, mock_redirect.return_value)
+        mock_redirect.assert_called_once_with(mock_form.save.return_value)
+
+    @patch('lists.views.render')
+    def test_renders_home_template_with_form_if_form_invalid(self, mock_render, mock_new_list_form):
+        mock_form = mock_new_list_form.return_value
+        mock_form.is_valid.return_value = False
+
+        response = new_list(self.request)
+
+        self.assertEqual(response, mock_render.return_value)
+        mock_render.assert_called_once_with(
+            self.request, 'home.html', {'form': mock_form}
+        )
+
+    def test_does_not_save_if_form_invalid(self, mock_new_list_form):
+        mock_form = mock_new_list_form.return_value
+        mock_form.is_valid.return_value = False
+
+        new_list(self.request)
+
+        self.assertFalse(mock_form.save.called)
+
 
 class MyListsTest(TestCase):
 
@@ -162,10 +233,3 @@ class MyListsTest(TestCase):
         correct_user = User.objects.create(email='a@b.com')
         response = self.client.get('/lists/users/a@b.com/')
         self.assertEqual(response.context['owner'], correct_user)
-
-    def test_list_owner_is_saved_if_user_is_authenticated(self):
-        user = User.objects.create(email='a@b.com')
-        self.client.force_login(user)
-        self.client.post('/lists/new', data={'text': 'new item'})
-        list_ = List.objects.first()
-        self.assertEqual(list_.owner, user)
