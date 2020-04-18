@@ -6,7 +6,7 @@ from django.test import TestCase
 from django.utils.html import escape
 from django.contrib.auth import get_user_model
 
-from lists.views import new_list
+from lists.views import new_list, share_list
 from lists.forms import ItemForm, ExistingListItemForm,EMPTY_ITEM_ERROR, DUPLICATE_ITEM_ERROR
 from lists.models import Item, List
 
@@ -233,3 +233,29 @@ class MyListsTest(TestCase):
         correct_user = User.objects.create(email='a@b.com')
         response = self.client.get('/lists/users/a@b.com/')
         self.assertEqual(response.context['owner'], correct_user)
+
+
+class ShareListTest(TestCase):
+
+    def setUp(self) -> None:
+        self.owner = User.objects.create(email='a@b.com')
+        self.sharee = User.objects.create(email='noreply@share.com')
+
+    def test_post_redirects_to_list_page(self):
+        list_ = List.objects.create()
+
+        response = self.client.post(f'/lists/{list_.id}/share', data={
+            'sharee': self.sharee.email
+        })
+
+        self.assertRedirects(response, f'/lists/{list_.id}/')
+
+    def test_sharing_adds_user_to_shared_with_list(self):
+        list_ = List.objects.create()
+        email = self.sharee.email
+
+        self.client.post(f'/lists/{list_.id}/share', data={
+            'sharee': email
+        })
+
+        self.assertEqual(list(list_.shared_with.all()), [self.sharee])

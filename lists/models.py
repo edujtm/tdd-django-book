@@ -5,6 +5,7 @@ from django.conf import settings
 
 class List(models.Model):
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True, null=True, on_delete=models.SET_NULL)
+    shared_with = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='lists_shared')
 
     @property
     def name(self):
