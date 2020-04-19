@@ -1,10 +1,35 @@
 from django.shortcuts import redirect, render
 from django.contrib.auth import get_user_model
+from django.views.generic import FormView, CreateView, DetailView
 
 from lists.models import List
 from lists.forms import ItemForm, ExistingListItemForm, NewListForm
 
 User = get_user_model()
+
+
+class HomePageView(FormView):
+    template_name = 'home.html'
+    form_class = ItemForm
+
+
+class NewListView(CreateView):
+    form_class = NewListForm
+    template_name = 'home.html'
+
+    def form_valid(self, form):
+        list_ = form.save(owner=self.request.user)
+        return redirect(list_)
+
+
+class ViewAndAddToList(DetailView, CreateView):
+    model = List
+    template_name = 'list.html'
+    form_class = ExistingListItemForm
+
+    def get_form(self, form_class=None):
+        self.object = self.get_object()
+        return self.form_class(for_list=self.object, data=self.request.POST)
 
 
 def home_page(request):

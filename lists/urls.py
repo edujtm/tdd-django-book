@@ -18,8 +18,8 @@ from django.urls import path
 from lists import views
 
 urlpatterns = [
-    path('new', views.new_list, name='new_list'),
-    path('<int:pk>/', views.view_list, name='view_list'),
+    path('new', views.NewListView.as_view(), name='new_list'),
+    path('<int:pk>/', views.ViewAndAddToList.as_view(), name='view_list'),
     path('<int:pk>/share', views.share_list, name='share_list'),
     path('users/<email>/', views.my_lists, name='my_lists'),
 ]

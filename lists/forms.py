@@ -22,6 +22,10 @@ class ItemForm(forms.models.ModelForm):
             'text': {'required': EMPTY_ITEM_ERROR}
         }
 
+    def save_for_list(self, list_):
+        self.instance.list = list_
+        self.save()
+
 
 class NewListForm(ItemForm):
 
@@ -44,5 +48,5 @@ class ExistingListItemForm(ItemForm):
         try:
             self.instance.validate_unique()
         except ValidationError as e:
-                e.error_dict = {'text': [DUPLICATE_ITEM_ERROR]}
-                self._update_errors(e)
+            e.error_dict = {'text': [DUPLICATE_ITEM_ERROR]}
+            self._update_errors(e)
